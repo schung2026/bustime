@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <!-- 讓網頁加入主畫面後變成全螢幕 App -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="巴士到站">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>巴士到站時間看板</title>
+  <style>
+    body {
+      background-color: #111111;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #333;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+      color: #ffcc00;
+    }
+    .clock {
+      font-size: 28px;
+      color: #aaaaaa;
+    }
+    .bus-card {
+      background-color: #222222;
+      border-radius: 12px;
+      padding: 20px 25px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 10px solid #e60012; /* 九巴紅 */
+    }
+    .bus-card.ctb {
+      border-left-color: #ffdd00; /* 城巴黃 */
+    }
+    .route-info {
+      display: flex;
+      align-items: center;
+    }
+    .route-num {
+      font-size: 48px;
+      font-weight: bold;
+      width: 140px;
+    }
+    .dest-name {
+      font-size: 26px;
+      color: #dddddd;
+    }
+    .stop-name {
+      font-size: 18px;
+      color: #888888;
+      margin-top: 5px;
+    }
+    .eta-box {
+      text-align: right;
+    }
+    .eta-main {
+      font-size: 44px;
+      font-weight: bold;
+      color: #00e676;
+    }
+    .eta-sub {
+      font-size: 20px;
+      color: #aaaaaa;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>屋企樓下巴士到站</h1>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+
+  <div id="bus-list">載入中...</div>
+
+  <script>
+    // 1. 在這裡設定你想監察的巴士路線與車站 ID
+    var MY_BUSES = [
+      {
+        company: 'KMB',
+        route: '1A',
+        stopId: 'BFA3460955AC820C', // 需替換為你的車站 ID
+        serviceType: '1',
+        dest: '往 尖沙咀碼頭',
+        stopName: '旺角奶路臣街'
+      },
+      {
+        company: 'CTB',
+        route: '962X',
+        stopId: '001122', // 需替換為你的車站 ID
+        dest: '往 銅鑼灣(摩頓台)',
+        stopName: '軒尼詩道'
+      }
+    ];
+
+    // 更新時鐘
+    function updateClock() {
+      var now = new Date();
+      var h = ('0' + now.getHours()).slice(-2);
+      var m = ('0' + now.getMinutes()).slice(-2);
+      var s = ('0' + now.getSeconds()).slice(-2);
+      document.getElementById('clock').innerText = h + ':' + m + ':' + s;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 計算距離現在還有多少分鐘 (相容 iOS 12 日期解析)
+    function getMinutesDiff(etaString) {
+      if (!etaString) return null;
+      // 處理 ISO 時間格式確保 iOS 12 正常解析
+      var etaDate = new Date(etaString);
+      var now = new Date();
+      var diffMs = etaDate - now;
+      var diffMins = Math.floor(diffMs / 60000);
+      if (diffMins <= 0) return '即將抵達';
+      return diffMins + ' 分鐘';
+    }
+
+    // 抓取單一路線資料
+    function fetchBusData(bus, callback) {
+      var url = '';
+      if (bus.company === 'KMB') {
+        url = 'https://data.etabus.gov.hk/v1/transport/kmb/eta/' + bus.stopId + '/' + bus.route + '/' + bus.serviceType;
+      } else if (bus.company === 'CTB') {
+        url = 'https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/' + bus.stopId + '/' + bus.route;
+      }
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              var res = JSON.parse(xhr.responseText);
+              // 過濾出有效且未過期的班次
+              var validEtas = [];
+              if (res.data && res.data.length > 0) {
+                for (var i = 0; i < res.data.length; i++) {
+                  if (res.data[i].eta) {
+                    validEtas.push(getMinutesDiff(res.data[i].eta));
+                  }
+                }
+              }
+              callback(null, validEtas);
+            } catch (e) {
+              callback(e, []);
+            }
+          } else {
+            callback('API Error', []);
+          }
+        }
+      };
+      xhr.send();
+    }
+
+    // 更新畫面
+    function refreshAll() {
+      var container = document.getElementById('bus-list');
+      var htmlBuffer = new Array(MY_BUSES.length);
+      var completed = 0;
+
+      for (var i = 0; i < MY_BUSES.length; i++) {
+        (function(index) {
+          var bus = MY_BUSES[index];
+          fetchBusData(bus, function(err, etas) {
+            var mainEta = (etas && etas.length > 0) ? etas[0] : '暫無班次';
+            var subEta = (etas && etas.length > 1) ? '下班車: ' + etas.slice(1, 3).join(' / ') : '';
+            var cardClass = bus.company === 'CTB' ? 'bus-card ctb' : 'bus-card';
+
+            htmlBuffer[index] = 
+              '<div class="' + cardClass + '">' +
+                '<div class="route-info">' +
+                  '<div class="route-num">' + bus.route + '</div>' +
+                  '<div>' +
+                    '<div class="dest-name">' + bus.dest + '</div>' +
+                    '<div class="stop-name">' + bus.stopName + '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="eta-box">' +
+                  '<div class="eta-main">' + mainEta + '</div>' +
+                  '<div class="eta-sub">' + subEta + '</div>' +
+                '</div>' +
+              '</div>';
+
+            completed++;
+            if (completed === MY_BUSES.length) {
+              container.innerHTML = htmlBuffer.join('');
+            }
+          });
+        })(i);
+      }
+    }
+
+    // 初次載入並每 30 秒更新一次
+    refreshAll();
+    setInterval(refreshAll, 30000);
+  </script>
+</body>
+</html>
