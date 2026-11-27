@@ -16,6 +16,64 @@
     padding: 20px;
     -webkit-text-size-adjust: 100%;
   }
+
+  /* 天氣欄樣式 */
+  .weather-bar {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    background-color: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 15px 22px;
+    margin-bottom: 18px;
+  }
+  .weather-col {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    width: 48%;
+  }
+  .weather-tmr {
+    border-left: 1px solid #2a2a2a;
+    padding-left: 22px;
+  }
+  .w-icon {
+    width: 56px;
+    height: 56px;
+    margin-right: 15px;
+    background-color: #1d3557;
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .w-label {
+    font-size: 15px;
+    color: #999999;
+    margin-bottom: 4px;
+  }
+  .w-warn {
+    background-color: #d9232e;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+  .w-temp {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .w-desc {
+    font-size: 15px;
+    color: #bbbbbb;
+    margin-top: 3px;
+  }
+
+  /* 頂部時鐘與按鈕 */
   .header {
     display: -webkit-flex;
     display: flex;
@@ -55,6 +113,7 @@
   .btn-primary { background-color: #0066cc; border-color: #0077ee; }
   .btn-danger { background-color: #aa2222; border-color: #cc3333; padding: 6px 12px; font-size: 14px; }
 
+  /* 巴士卡片 */
   .card-list {
     display: -webkit-flex;
     display: flex;
@@ -136,7 +195,7 @@
     margin-top: 6px;
   }
 
-  /* Modal */
+  /* 彈出視窗 */
   .modal {
     display: none;
     position: fixed;
@@ -180,6 +239,27 @@
 </head>
 <body>
 
+<!-- 頂部香港天氣與明日天氣 -->
+<div class="weather-bar">
+  <div class="weather-col weather-now">
+    <img id="nowIcon" class="w-icon" src="" alt="" style="display:none;">
+    <div>
+      <div class="w-label">香港現時天氣 <span id="warnBadge" class="w-warn" style="display:none;"></span></div>
+      <div class="w-temp" id="nowTemp">載入中...</div>
+      <div class="w-desc" id="nowDesc">正在讀取天文台數據</div>
+    </div>
+  </div>
+  <div class="weather-col weather-tmr">
+    <img id="tmrIcon" class="w-icon" src="" alt="" style="display:none;">
+    <div>
+      <div class="w-label" id="tmrDateLabel">明日天氣預報</div>
+      <div class="w-temp" id="tmrTemp">--°C</div>
+      <div class="w-desc" id="tmrDesc">載入中...</div>
+    </div>
+  </div>
+</div>
+
+<!-- 時鐘與操作按鈕 -->
 <div class="header">
   <div class="clock" id="clock">--:--:--</div>
   <div class="status-area">
@@ -192,6 +272,7 @@
   </div>
 </div>
 
+<!-- 巴士路線清單 -->
 <div class="card-list" id="cardList"></div>
 
 <!-- 新增路線視窗 -->
@@ -235,7 +316,6 @@ var STORAGE_KEY = 'hk_bus_board_routes_v1';
 var editMode = false;
 var tempRouteDest = '';
 
-// 預設示範路線（首次開啟時顯示，可隨時刪除）
 var defaultRoutes = [
   { id: 'demo1', company: 'KMB', route: '101', dir: 'outbound', stopId: 'BFA3460955AC820C', stopName: '堅拿道東', dest: '觀塘(裕民坊)' },
   { id: 'demo2', company: 'CTB', route: '720', dir: 'outbound', stopId: '002437', stopName: '菲林明道, 軒尼詩道', dest: '嘉亨灣' }
@@ -255,100 +335,37 @@ function getRoutes() {
 }
 
 function saveRoutesList(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-}
-
-function updateClock() {
-  var now = new Date();
-  var h = ('0' + now.getHours()).slice(-2);
-  var m = ('0' + now.getMinutes()).slice(-2);
-  var s = ('0' + now.getSeconds()).slice(-2);
-  document.getElementById('clock').innerHTML = h + ':' + m + ':' + s;
-}
-
-function calcMinutes(etaStr) {
-  if (!etaStr) return null;
-  var etaDate = new Date(etaStr);
-  if (isNaN(etaDate.getTime())) return null;
-  var diffMs = etaDate.getTime() - new Date().getTime();
-  var mins = Math.floor(diffMs / 60000);
-  return mins < 0 ? 0 : mins;
-}
-
-function renderCards() {
-  var list = getRoutes();
-  var container = document.getElementById('cardList');
-  if (list.length === 0) {
-    container.innerHTML = '<div class="empty-tip">尚未設定任何路線，請點擊右上角「＋ 新增路線」</div>';
-    return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch (e) {
+    alert('儲存失敗：請確認瀏覽器未開啟「私密瀏覽」模式');
   }
-  var html = '';
-  for (var i = 0; i < list.length; i++) {
-    var item = list[i];
-    var badgeClass = item.company === 'KMB' ? 'badge-kmb' : 'badge-ctb';
-    var badgeText = item.company === 'KMB' ? '九巴' : '城巴';
-    var delBtn = editMode ? '<button class="btn btn-danger" style="margin-right:12px;" onclick="deleteRoute(\'' + item.id + '\')">刪除</button>' : '';
-    html += '<div class="bus-card" id="card-' + item.id + '">' +
-              '<div class="route-info">' +
-                delBtn +
-                '<div class="route-num">' + item.route + '</div>' +
-                '<div class="stop-details">' +
-                  '<div class="dest-name"><span class="badge ' + badgeClass + '">' + badgeText + '</span>往 ' + item.dest + '</div>' +
-                  '<div class="stop-name">上車站：' + item.stopName + '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="eta-box" id="eta-' + item.id + '">' +
-                '<div class="eta-none">載入中...</div>' +
-              '</div>' +
-            '</div>';
-  }
-  container.innerHTML = html;
 }
 
-function fetchSingleEta(item) {
-  var url = '';
-  if (item.company === 'KMB') {
-    url = 'https://etabus.gov.hk' + item.stopId + '/' + item.route + '/1';
-  } else {
-    url = 'https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/' + item.stopId + '/' + item.route;
-  }
-
-  fetch(url)
+function fetchWeather() {
+  fetch('https://weather.gov.hk')
     .then(function(res) { return res.json(); })
-    .then(function(json) {
-      var data = json.data || [];
-      var targetDir = item.dir === 'outbound' ? 'O' : 'I';
-      var validEtas = [];
-
-      for (var i = 0; i < data.length; i++) {
-        var row = data[i];
-        if (row.dir === targetDir && row.eta) {
-          var m = calcMinutes(row.eta);
-          if (m !== null) {
-            validEtas.push({ mins: m, rmk: row.rmk_tc || '' });
+    .then(function(data) {
+      var tempVal = '--';
+      if (data.temperature && data.temperature.data) {
+        for (var i = 0; i < data.temperature.data.length; i++) {
+          if (data.temperature.data[i].place === '香港天文台') {
+            tempVal = data.temperature.data[i].value;
+            break;
           }
         }
+        if (tempVal === '--' && data.temperature.data.length > 0) {
+          tempVal = data.temperature.data[0].value;
+        }
       }
+      var humVal = (data.humidity && data.humidity.data && data.humidity.data.length > 0) ? data.humidity.data[0].value : '--';
+      document.getElementById('nowTemp').innerHTML = tempVal + '°C  <span style="font-size:18px;font-weight:400;color:#aaaaaa;">濕度 ' + humVal + '%</span>';
 
-      validEtas.sort(function(a, b) { return a.mins - b.mins; });
-      updateEtaUI(item.id, validEtas);
-    })
-    .catch(function() {
-      var box = document.getElementById('eta-' + item.id);
-      if (box) box.innerHTML = '<div class="eta-none">連線失敗</div>';
-    });
-}
-
-function updateEtaUI(id, etas) {
-  var box = document.getElementById('eta-' + id);
-  if (!box) return;
-  if (etas.length === 0) {
-    box.innerHTML = '<div class="eta-none">暫無班次資料</div>';
-    return;
-  }
-
-  var first = etas[0];
-  var mainHtml = '';
+      if (data.icon && data.icon.length > 0) {
+        var iconImg = document.getElementById('nowIcon');
+        iconImg.src = 'https://hko.gov.hk' + data.icon[0] + '.png';
+        iconImg.style.display = 'block';
+      }
 if (!stopDetails) return;
 var options = '';
 for (var i = 0; i < stopDetails.length; i++) {
@@ -423,10 +440,12 @@ closeModal();
 renderCards();
 refreshAll();
 }
-// 初始化
+// 初始化執行
 updateClock();
 setInterval(updateClock, 1000);
+fetchWeather();
+setInterval(fetchWeather, 900000);
 renderCards();
 refreshAll();
 setInterval(refreshAll, 20000);
- 
+
