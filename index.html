@@ -4,99 +4,25 @@
   <meta charset="UTF-8">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="巴士與天氣">
+  <meta name="apple-mobile-web-app-title" content="巴士到站">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>巴士到站與天氣看板</title>
+  <title>巴士到站時間看板</title>
   <style>
     body {
       background-color: #111111;
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
       margin: 0;
-      padding: 18px 20px;
+      padding: 20px;
       -webkit-tap-highlight-color: transparent;
     }
-
-    /* 頂部天氣看板區域 */
-    .weather-bar {
-      background-color: #1c1c1e;
-      border: 1px solid #333333;
-      border-radius: 12px;
-      padding: 14px 20px;
-      margin-bottom: 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .weather-now {
-      display: flex;
-      align-items: center;
-    }
-    .weather-icon-main {
-      width: 58px;
-      height: 58px;
-      background-color: #2c2c2e;
-      border-radius: 10px;
-      padding: 4px;
-      margin-right: 15px;
-    }
-    .weather-temp {
-      font-size: 40px;
-      font-weight: bold;
-      color: #ffffff;
-      line-height: 1.1;
-    }
-    .weather-sub {
-      font-size: 16px;
-      color: #bbbbbb;
-      margin-top: 4px;
-    }
-    .weather-warn {
-      display: inline-block;
-      background-color: #d32f2f;
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: bold;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-    .weather-forecast {
-      display: flex;
-      gap: 12px;
-    }
-    .fc-day {
-      background-color: #262629;
-      border-radius: 8px;
-      padding: 8px 12px;
-      text-align: center;
-      min-width: 78px;
-    }
-    .fc-week {
-      font-size: 15px;
-      color: #ffcc00;
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-    .fc-icon {
-      width: 34px;
-      height: 34px;
-    }
-    .fc-temp {
-      font-size: 15px;
-      color: #eeeeee;
-      margin-top: 4px;
-    }
-
-    /* 巴士看板標題列 */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid #333;
-      padding-bottom: 12px;
-      margin-bottom: 16px;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
     }
     .header-left {
       display: flex;
@@ -104,7 +30,7 @@
     }
     .header h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 30px;
       color: #ffcc00;
       margin-right: 15px;
     }
@@ -113,8 +39,8 @@
       color: #ffffff;
       border: 1px solid #555555;
       border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 17px;
+      padding: 8px 16px;
+      font-size: 18px;
       cursor: pointer;
     }
     .btn-add {
@@ -129,15 +55,12 @@
     .clock {
       font-size: 26px;
       color: #aaaaaa;
-      font-variant-numeric: tabular-nums;
     }
-
-    /* 巴士卡片 */
     .bus-card {
       background-color: #222222;
       border-radius: 12px;
-      padding: 16px 22px;
-      margin-bottom: 14px;
+      padding: 18px 22px;
+      margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -151,16 +74,16 @@
       align-items: center;
     }
     .route-num {
-      font-size: 44px;
+      font-size: 46px;
       font-weight: bold;
-      width: 130px;
+      width: 135px;
     }
     .dest-name {
-      font-size: 23px;
+      font-size: 24px;
       color: #eeeeee;
     }
     .stop-name {
-      font-size: 17px;
+      font-size: 18px;
       color: #999999;
       margin-top: 4px;
     }
@@ -170,12 +93,12 @@
       align-items: center;
     }
     .eta-main {
-      font-size: 40px;
+      font-size: 42px;
       font-weight: bold;
       color: #00e676;
     }
     .eta-sub {
-      font-size: 17px;
+      font-size: 18px;
       color: #aaaaaa;
       margin-top: 4px;
     }
@@ -184,10 +107,10 @@
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 10px 16px;
-      font-size: 18px;
+      padding: 12px 18px;
+      font-size: 20px;
       font-weight: bold;
-      margin-left: 18px;
+      margin-left: 20px;
       display: none;
     }
     .edit-mode .btn-del {
@@ -196,8 +119,8 @@
     .empty-msg {
       text-align: center;
       color: #888888;
-      font-size: 22px;
-      margin-top: 60px;
+      font-size: 24px;
+      margin-top: 80px;
     }
 
     /* 新增路線彈出視窗 */
@@ -273,15 +196,6 @@
 </head>
 <body>
 
-  <!-- 頂部天氣與預報區 -->
-  <div class="weather-bar">
-    <div class="weather-now" id="weather-now">
-      <div style="color:#888; font-size:18px;">正在載入香港天文台天氣...</div>
-    </div>
-    <div class="weather-forecast" id="weather-forecast"></div>
-  </div>
-
-  <!-- 巴士控制標題列 -->
   <div class="header">
     <div class="header-left">
       <h1>巴士到站看板</h1>
@@ -291,7 +205,6 @@
     <div class="clock" id="clock">--:--:--</div>
   </div>
 
-  <!-- 巴士列表 -->
   <div id="bus-list">載入中...</div>
 
   <!-- 新增路線彈出視窗 -->
@@ -325,9 +238,10 @@
   <script>
     var STORAGE_KEY = 'ipad_bus_eta_list_v1';
     var isEditMode = false;
-    var kmbStopsCache = null;
-    var currentSearchMeta = {};
+    var kmbStopsCache = null; // 暫存九巴所有車站名稱對照表
+    var currentSearchMeta = {}; // 暫存搜尋中的路線資訊
 
+    // 預設範例路線 (初次開啟時顯示)
     var DEFAULT_BUSES = [
       {
         company: 'KMB',
@@ -338,6 +252,59 @@
         stopName: '旺角奶路臣街'
       }
     ];
+
+    // 讀取已儲存的路線
+    function loadBuses() {
+      try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          return JSON.parse(saved);
+        }
+      } catch (e) {}
+      return DEFAULT_BUSES;
+    }
+
+    // 儲存路線到 iPad 本機
+    function saveBuses(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      } catch (e) {
+        alert('儲存失敗，請確認 Safari 並非處於「私密瀏覽」模式');
+      }
+    }
+
+    var MY_BUSES = loadBuses();
+
+    // 切換刪除模式
+    function toggleEditMode() {
+      isEditMode = !isEditMode;
+      var listEl = document.getElementById('bus-list');
+      var btnEl = document.getElementById('btn-edit');
+      if (isEditMode) {
+        listEl.className = 'edit-mode';
+        btnEl.className = 'btn btn-edit-active';
+        btnEl.innerText = '完成';
+      } else {
+        listEl.className = '';
+        btnEl.className = 'btn';
+        btnEl.innerText = '管理/刪除';
+      }
+    }
+
+    // 刪除指定路線
+    function deleteBus(index) {
+      MY_BUSES.splice(index, 1);
+      saveBuses(MY_BUSES);
+      refreshAll();
+    }
+
+    // 開關新增視窗
+    function openModal() {
+      document.getElementById('add-modal').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('add-modal').style.display = 'none';
+    }
 
     // 通用 HTTP GET 請求 (相容 iOS 12)
     function httpGet(url, callback) {
@@ -359,123 +326,7 @@
       xhr.send();
     }
 
-    // ================= 天氣模組 (香港天文台 API) =================
-    function refreshWeather() {
-      // 1. 取得本港地區天氣報告 (現時氣溫、濕度、警告)
-      httpGet('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc', function(err, data) {
-        if (err || !data) return;
-
-        var temp = '--';
-        if (data.temperature && data.temperature.data) {
-          // 優先尋找「香港天文台」或「九龍城」測站，否則取第一個有效測站
-          for (var i = 0; i < data.temperature.data.length; i++) {
-            var item = data.temperature.data[i];
-            if (item.place === '香港天文台' || item.place === '九龍城') {
-              temp = item.value;
-              if (item.place === '香港天文台') break;
-            }
-          }
-          if (temp === '--' && data.temperature.data.length > 0) {
-            temp = data.temperature.data[0].value;
-          }
-        }
-
-        var humidity = '--';
-        if (data.humidity && data.humidity.data && data.humidity.data.length > 0) {
-          humidity = data.humidity.data[0].value;
-        }
-
-        var iconCode = (data.icon && data.icon.length > 0) ? data.icon[0] : 50;
-        var iconUrl = 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic' + iconCode + '.png';
-
-        var warnHtml = '';
-        if (data.warningMessage && data.warningMessage.length > 0) {
-          warnHtml = '<span class="weather-warn">' + data.warningMessage[0] + '</span>';
-        }
-
-        var nowHtml = 
-          '<img class="weather-icon-main" src="' + iconUrl + '" alt="天氣">' +
-          '<div>' +
-            '<div class="weather-temp">' + temp + '°C' + warnHtml + '</div>' +
-            '<div class="weather-sub">相對濕度 ' + humidity + '% ・ 香港天文台</div>' +
-          '</div>';
-
-        document.getElementById('weather-now').innerHTML = nowHtml;
-      });
-
-      // 2. 取得九天天氣預報 (取未來 4 天顯示)
-      httpGet('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc', function(err, data) {
-        if (err || !data || !data.weatherForecast) return;
-
-        var forecasts = data.weatherForecast;
-        var maxDays = forecasts.length > 4 ? 4 : forecasts.length;
-        var fcHtml = '';
-
-        for (var i = 0; i < maxDays; i++) {
-          var day = forecasts[i];
-          var weekText = (i === 0) ? '明日' : day.week.replace('星期', '週');
-          var iconUrl = 'https://www.hko.gov.hk/images/HKOWxIconOutline/pic' + day.ForecastIcon + '.png';
-          var minT = day.forecastMintemp ? day.forecastMintemp.value : '--';
-          var maxT = day.forecastMaxtemp ? day.forecastMaxtemp.value : '--';
-
-          fcHtml += 
-            '<div class="fc-day">' +
-              '<div class="fc-week">' + weekText + '</div>' +
-              '<img class="fc-icon" src="' + iconUrl + '" alt="">' +
-              '<div class="fc-temp">' + minT + '-' + maxT + '°</div>' +
-            '</div>';
-        }
-        document.getElementById('weather-forecast').innerHTML = fcHtml;
-      });
-    }
-
-    // ================= 巴士模組 =================
-    function loadBuses() {
-      try {
-        var saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch (e) {}
-      return DEFAULT_BUSES;
-    }
-
-    function saveBuses(list) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-      } catch (e) {
-        alert('儲存失敗，請確認 Safari 並非處於「私密瀏覽」模式');
-      }
-    }
-
-    var MY_BUSES = loadBuses();
-
-    function toggleEditMode() {
-      isEditMode = !isEditMode;
-      var listEl = document.getElementById('bus-list');
-      var btnEl = document.getElementById('btn-edit');
-      if (isEditMode) {
-        listEl.className = 'edit-mode';
-        btnEl.className = 'btn btn-edit-active';
-        btnEl.innerText = '完成';
-      } else {
-        listEl.className = '';
-        btnEl.className = 'btn';
-        btnEl.innerText = '管理/刪除';
-      }
-    }
-
-    function deleteBus(index) {
-      MY_BUSES.splice(index, 1);
-      saveBuses(MY_BUSES);
-      refreshAll();
-    }
-
-    function openModal() {
-      document.getElementById('add-modal').style.display = 'flex';
-    }
-    function closeModal() {
-      document.getElementById('add-modal').style.display = 'none';
-    }
-
+    // 搜尋車站步驟 1
     function searchStops() {
       var company = document.getElementById('inp-company').value;
       var route = document.getElementById('inp-route').value.trim().toUpperCase();
@@ -490,6 +341,7 @@
       resultBox.innerHTML = '<div class="status-text">正在搜尋 ' + route + ' 路線資料...</div>';
 
       if (company === 'KMB') {
+        // 先取得路線終點站名稱
         var routeUrl = 'https://data.etabus.gov.hk/v1/transport/kmb/route/' + route + '/' + bound + '/1';
         httpGet(routeUrl, function(err, routeRes) {
           if (err || !routeRes || !routeRes.data || !routeRes.data.dest_tc) {
@@ -499,6 +351,7 @@
           var destName = '往 ' + routeRes.data.dest_tc;
           currentSearchMeta = { company: 'KMB', route: route, dest: destName, serviceType: '1' };
 
+          // 取得該路線車站 ID 列表
           var stopListUrl = 'https://data.etabus.gov.hk/v1/transport/kmb/route-stop/' + route + '/' + bound + '/1';
           httpGet(stopListUrl, function(err2, stopListRes) {
             if (err2 || !stopListRes || !stopListRes.data) {
@@ -507,8 +360,200 @@
             }
             var stops = stopListRes.data;
 
+            // 載入九巴全港車站名稱對照表 (只載入一次並快取)
             if (kmbStopsCache) {
               renderKmbStops(stops, destName);
             } else {
               resultBox.innerHTML = '<div class="status-text">正在下載車站名稱庫 (首次需時約2秒)...</div>';
-              httpGet('
+              httpGet('https://data.etabus.gov.hk/v1/transport/kmb/stop', function(err3, allStopsRes) {
+                if (err3 || !allStopsRes || !allStopsRes.data) {
+                  resultBox.innerHTML = '<div class="status-text">無法載入車站名稱庫</div>';
+                  return;
+                }
+                kmbStopsCache = {};
+                for (var i = 0; i < allStopsRes.data.length; i++) {
+                  var s = allStopsRes.data[i];
+                  kmbStopsCache[s.stop] = s.name_tc;
+                }
+                renderKmbStops(stops, destName);
+              });
+            }
+          });
+        });
+
+      } else if (company === 'CTB') {
+        // 城巴路線資訊
+        var ctbRouteUrl = 'https://rt.data.gov.hk/v2/transport/citybus/route/CTB/' + route;
+        httpGet(ctbRouteUrl, function(err, routeRes) {
+          if (err || !routeRes || !routeRes.data || !routeRes.data.dest_tc) {
+            resultBox.innerHTML = '<div class="status-text">找不到該城巴路線，請檢查輸入</div>';
+            return;
+          }
+          var destName = '往 ' + (bound === 'outbound' ? routeRes.data.dest_tc : routeRes.data.orig_tc);
+          currentSearchMeta = { company: 'CTB', route: route, dest: destName };
+
+          var ctbStopsUrl = 'https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/' + route + '/' + bound;
+          httpGet(ctbStopsUrl, function(err2, stopListRes) {
+            if (err2 || !stopListRes || !stopListRes.data || stopListRes.data.length === 0) {
+              resultBox.innerHTML = '<div class="status-text">找不到該方向車站資料</div>';
+              return;
+            }
+            renderCtbStops(stopListRes.data, destName);
+          });
+        });
+      }
+    }
+
+    // 顯示九巴搜尋結果
+    function renderKmbStops(stops, destName) {
+      var resultBox = document.getElementById('stop-results');
+      var html = '<div class="status-text" style="color:#ffcc00; padding:8px;">' + destName + ' (點擊車站加入)</div>';
+      for (var i = 0; i < stops.length; i++) {
+        var stopId = stops[i].stop;
+        var stopName = kmbStopsCache[stopId] || stopId;
+        html += '<div class="stop-item" onclick="selectStop(\'' + stopId + '\', \'' + stopName.replace(/'/g, "\\'") + '\')">' +
+                  (i + 1) + '. ' + stopName +
+                '</div>';
+      }
+      resultBox.innerHTML = html;
+    }
+
+    // 顯示城巴搜尋結果 (逐個取得站名)
+    function renderCtbStops(stops, destName) {
+      var resultBox = document.getElementById('stop-results');
+      resultBox.innerHTML = '<div class="status-text">正在讀取城巴車站名稱...</div>';
+      var names = new Array(stops.length);
+      var loaded = 0;
+
+      for (var i = 0; i < stops.length; i++) {
+        (function(idx, stopId) {
+          httpGet('https://rt.data.gov.hk/v2/transport/citybus/stop/' + stopId, function(err, res) {
+            names[idx] = (res && res.data && res.data.name_tc) ? res.data.name_tc : stopId;
+            loaded++;
+            if (loaded === stops.length) {
+              var html = '<div class="status-text" style="color:#ffcc00; padding:8px;">' + destName + ' (點擊車站加入)</div>';
+              for (var j = 0; j < stops.length; j++) {
+                html += '<div class="stop-item" onclick="selectStop(\'' + stops[j].stop + '\', \'' + names[j].replace(/'/g, "\\'") + '\')">' +
+                          (j + 1) + '. ' + names[j] +
+                        '</div>';
+              }
+              resultBox.innerHTML = html;
+            }
+          });
+        })(i, stops[i].stop);
+      }
+    }
+
+    // 選擇車站並加入看板
+    function selectStop(stopId, stopName) {
+      var newBus = {
+        company: currentSearchMeta.company,
+        route: currentSearchMeta.route,
+        stopId: stopId,
+        serviceType: currentSearchMeta.serviceType || '1',
+        dest: currentSearchMeta.dest,
+        stopName: stopName
+      };
+      MY_BUSES.push(newBus);
+      saveBuses(MY_BUSES);
+      closeModal();
+      refreshAll();
+    }
+
+    // 更新時鐘
+    function updateClock() {
+      var now = new Date();
+      var h = ('0' + now.getHours()).slice(-2);
+      var m = ('0' + now.getMinutes()).slice(-2);
+      var s = ('0' + now.getSeconds()).slice(-2);
+      document.getElementById('clock').innerText = h + ':' + m + ':' + s;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 計算分鐘差
+    function getMinutesDiff(etaString) {
+      if (!etaString) return null;
+      var etaDate = new Date(etaString);
+      var now = new Date();
+      var diffMs = etaDate - now;
+      var diffMins = Math.floor(diffMs / 60000);
+      if (diffMins <= 0) return '即將抵達';
+      return diffMins + ' 分鐘';
+    }
+
+    // 抓取單一路線 ETA
+    function fetchBusData(bus, callback) {
+      var url = '';
+      if (bus.company === 'KMB') {
+        url = 'https://data.etabus.gov.hk/v1/transport/kmb/eta/' + bus.stopId + '/' + bus.route + '/' + bus.serviceType;
+      } else if (bus.company === 'CTB') {
+        url = 'https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/' + bus.stopId + '/' + bus.route;
+      }
+
+      httpGet(url, function(err, res) {
+        if (err || !res || !res.data) {
+          callback(err, []);
+          return;
+        }
+        var validEtas = [];
+        for (var i = 0; i < res.data.length; i++) {
+          if (res.data[i].eta) {
+            validEtas.push(getMinutesDiff(res.data[i].eta));
+          }
+        }
+        callback(null, validEtas);
+      });
+    }
+
+    // 更新全部巴士畫面
+    function refreshAll() {
+      var container = document.getElementById('bus-list');
+      if (MY_BUSES.length === 0) {
+        container.innerHTML = '<div class="empty-msg">尚未設定任何路線<br>請按上方「+ 新增路線」加入巴士</div>';
+        return;
+      }
+
+      var htmlBuffer = new Array(MY_BUSES.length);
+      var completed = 0;
+
+      for (var i = 0; i < MY_BUSES.length; i++) {
+        (function(index) {
+          var bus = MY_BUSES[index];
+          fetchBusData(bus, function(err, etas) {
+            var mainEta = (etas && etas.length > 0) ? etas[0] : '暫無班次';
+            var subEta = (etas && etas.length > 1) ? '下班車: ' + etas.slice(1, 3).join(' / ') : '';
+            var cardClass = bus.company === 'CTB' ? 'bus-card ctb' : 'bus-card';
+
+            htmlBuffer[index] = 
+              '<div class="' + cardClass + '">' +
+                '<div class="route-info">' +
+                  '<div class="route-num">' + bus.route + '</div>' +
+                  '<div>' +
+                    '<div class="dest-name">' + bus.dest + '</div>' +
+                    '<div class="stop-name">' + bus.stopName + '</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="eta-box">' +
+                  '<div>' +
+                    '<div class="eta-main">' + mainEta + '</div>' +
+                    '<div class="eta-sub">' + subEta + '</div>' +
+                  '</div>' +
+                  '<button class="btn-del" onclick="deleteBus(' + index + ')">刪除</button>' +
+                '</div>' +
+              '</div>';
+
+            completed++;
+            if (completed === MY_BUSES.length) {
+              container.innerHTML = htmlBuffer.join('');
+            }
+          });
+        })(i);
+      }
+    }
+
+    refreshAll();
+    setInterval(refreshAll, 30000);
+  </script>
+</body>
+</html>
