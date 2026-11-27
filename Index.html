@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<!-- 請參閱完整網頁原始碼及各項 API 串接邏輯 -->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="巴士報站">
+<title>香港實時巴士報站器</title>
+<!-- 完整 CSS 樣式與 HTML 結構請至來源文檔檢視 -->
+</head>
+<body>
+<!-- 天氣資訊欄與巴士路線卡片介面 -->
+<div class="weather-bar">
+  <div class="weather-col weather-now">
+    <img id="nowIcon" class="w-icon" src="" alt="" style="display:none;">
+    <div>
+      <div class="w-label">香港現時天氣 <span id="warnBadge" class="w-warn" style="display:none;"></span></div>
+      <div class="w-temp" id="nowTemp">載入中...</div>
+      <div class="w-desc" id="nowDesc">正在讀取天文台數據</div>
+    </div>
+  </div>
+  <div class="weather-col weather-tmr">
+    <img id="tmrIcon" class="w-icon" src="" alt="" style="display:none;">
+    <div>
+      <div class="w-label" id="tmrDateLabel">明日天氣預報</div>
+      <div class="w-temp" id="tmrTemp">--°C</div>
+      <div class="w-desc" id="tmrDesc">載入中...</div>
+    </div>
+  </div>
+</div>
+<!-- 完整 JavaScript 邏輯（包含天文台天氣 API 與九巴/城巴 API 串接）請參照完整代碼 -->
+</body>
+</html>
