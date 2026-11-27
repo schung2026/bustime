@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
-<!-- 請參閱完整網頁原始碼及各項 API 串接邏輯 -->
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -8,28 +7,345 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="巴士報站">
 <title>香港實時巴士報站器</title>
-<!-- 完整 CSS 樣式與 HTML 結構請至來源文檔檢視 -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Helvetica Neue", sans-serif;
+    padding: 20px;
+    -webkit-text-size-adjust: 100%;
+  }
+  .header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-align-items: center;
+    align-items: center;
+    border-bottom: 1px solid #333333;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+  .clock {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #ffffff;
+  }
+  .status-area {
+    text-align: right;
+  }
+  .update-time {
+    font-size: 15px;
+    color: #888888;
+    margin-bottom: 8px;
+  }
+  .btn {
+    background-color: #222222;
+    color: #ffffff;
+    border: 1px solid #444444;
+    padding: 8px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  .btn:active { background-color: #444444; }
+  .btn-primary { background-color: #0066cc; border-color: #0077ee; }
+  .btn-danger { background-color: #aa2222; border-color: #cc3333; padding: 6px 12px; font-size: 14px; }
+
+  .card-list {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: -10px;
+  }
+  .bus-card {
+    width: 100%;
+    background-color: #111111;
+    border: 1px solid #2a2a2a;
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin: 10px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-align-items: center;
+    align-items: center;
+  }
+  .route-info {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+  }
+  .badge {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-right: 12px;
+    display: inline-block;
+  }
+  .badge-kmb { background-color: #d9232e; color: #ffffff; }
+  .badge-ctb { background-color: #f5b800; color: #000000; }
+
+  .route-num {
+    font-size: 46px;
+    font-weight: 800;
+    min-width: 115px;
+    color: #ffffff;
+  }
+  .stop-details {
+    margin-left: 15px;
+  }
+  .dest-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #eeeeee;
+    margin-bottom: 4px;
+  }
+  .stop-name {
+    font-size: 17px;
+    color: #999999;
+  }
+
+  .eta-box {
+    text-align: right;
+    min-width: 220px;
+  }
+  .eta-main {
+    font-size: 42px;
+    font-weight: 800;
+    color: #00e676;
+  }
+  .eta-main span {
+    font-size: 20px;
+    font-weight: 400;
+    color: #cccccc;
+    margin-left: 4px;
+  }
+  .eta-arriving { color: #ffab00; }
+  .eta-none { color: #666666; font-size: 26px; }
+  .eta-next {
+    font-size: 18px;
+    color: #aaaaaa;
+    margin-top: 6px;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.88);
+    padding: 30px;
+    z-index: 999;
+  }
+  .modal-content {
+    background-color: #181818;
+    border: 1px solid #444444;
+    border-radius: 14px;
+    max-width: 560px;
+    margin: 20px auto;
+    padding: 25px;
+  }
+  .modal h2 { margin-bottom: 18px; font-size: 24px; }
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; margin-bottom: 6px; color: #bbbbbb; font-size: 16px; }
+  .form-control {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #555555;
+    border-radius: 8px;
+  }
+  .modal-actions {
+    margin-top: 20px;
+    text-align: right;
+  }
+  .empty-tip {
+    text-align: center;
+    color: #777777;
+    font-size: 22px;
+    padding: 60px 20px;
+    width: 100%;
+  }
+</style>
 </head>
 <body>
-<!-- 天氣資訊欄與巴士路線卡片介面 -->
-<div class="weather-bar">
-  <div class="weather-col weather-now">
-    <img id="nowIcon" class="w-icon" src="" alt="" style="display:none;">
+
+<div class="header">
+  <div class="clock" id="clock">--:--:--</div>
+  <div class="status-area">
+    <div class="update-time" id="updateTime">準備更新...</div>
     <div>
-      <div class="w-label">香港現時天氣 <span id="warnBadge" class="w-warn" style="display:none;"></span></div>
-      <div class="w-temp" id="nowTemp">載入中...</div>
-      <div class="w-desc" id="nowDesc">正在讀取天文台數據</div>
-    </div>
-  </div>
-  <div class="weather-col weather-tmr">
-    <img id="tmrIcon" class="w-icon" src="" alt="" style="display:none;">
-    <div>
-      <div class="w-label" id="tmrDateLabel">明日天氣預報</div>
-      <div class="w-temp" id="tmrTemp">--°C</div>
-      <div class="w-desc" id="tmrDesc">載入中...</div>
+      <button class="btn" onclick="refreshAll()">立即更新</button>
+      <button class="btn" id="editBtn" onclick="toggleEdit()">編輯</button>
+      <button class="btn btn-primary" onclick="openModal()">＋ 新增路線</button>
     </div>
   </div>
 </div>
-<!-- 完整 JavaScript 邏輯（包含天文台天氣 API 與九巴/城巴 API 串接）請參照完整代碼 -->
-</body>
-</html>
+
+<div class="card-list" id="cardList"></div>
+
+<!-- 新增路線視窗 -->
+<div class="modal" id="addModal">
+  <div class="modal-content">
+    <h2>新增監察巴士路線</h2>
+    <div class="form-group">
+      <label>巴士公司</label>
+      <select class="form-control" id="companyInput" onchange="resetStops()">
+        <option value="KMB">九巴 / 龍運 (KMB)</option>
+        <option value="CTB">城巴 (Citybus)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>路線號碼（例如：101, 960, 1A, 720）</label>
+      <input type="text" class="form-control" id="routeInput" placeholder="輸入路線號碼" onkeyup="this.value=this.value.toUpperCase()">
+    </div>
+    <div class="form-group">
+      <label>行車方向</label>
+      <select class="form-control" id="dirInput" onchange="resetStops()">
+        <option value="outbound">去程 (Outbound)</option>
+        <option value="inbound">回程 (Inbound)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="searchStops()">搜尋該方向車站列表</button>
+    </div>
+    <div class="form-group" id="stopSelectGroup" style="display:none;">
+      <label id="routeDestLabel">選擇上車站</label>
+      <select class="form-control" id="stopSelect"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="saveBtn" style="display:none;" onclick="saveRoute()">儲存路線</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var STORAGE_KEY = 'hk_bus_board_routes_v1';
+var editMode = false;
+var tempRouteDest = '';
+
+// 預設示範路線（首次開啟時顯示，可隨時刪除）
+var defaultRoutes = [
+  { id: 'demo1', company: 'KMB', route: '101', dir: 'outbound', stopId: 'BFA3460955AC820C', stopName: '堅拿道東', dest: '觀塘(裕民坊)' },
+  { id: 'demo2', company: 'CTB', route: '720', dir: 'outbound', stopId: '002437', stopName: '菲林明道, 軒尼詩道', dest: '嘉亨灣' }
+];
+
+function getRoutes() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultRoutes));
+      return defaultRoutes;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    return defaultRoutes;
+  }
+}
+
+function saveRoutesList(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+function updateClock() {
+  var now = new Date();
+  var h = ('0' + now.getHours()).slice(-2);
+  var m = ('0' + now.getMinutes()).slice(-2);
+  var s = ('0' + now.getSeconds()).slice(-2);
+  document.getElementById('clock').innerHTML = h + ':' + m + ':' + s;
+}
+
+function calcMinutes(etaStr) {
+  if (!etaStr) return null;
+  var etaDate = new Date(etaStr);
+  if (isNaN(etaDate.getTime())) return null;
+  var diffMs = etaDate.getTime() - new Date().getTime();
+  var mins = Math.floor(diffMs / 60000);
+  return mins < 0 ? 0 : mins;
+}
+
+function renderCards() {
+  var list = getRoutes();
+  var container = document.getElementById('cardList');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-tip">尚未設定任何路線，請點擊右上角「＋ 新增路線」</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var badgeClass = item.company === 'KMB' ? 'badge-kmb' : 'badge-ctb';
+    var badgeText = item.company === 'KMB' ? '九巴' : '城巴';
+    var delBtn = editMode ? '<button class="btn btn-danger" style="margin-right:12px;" onclick="deleteRoute(\'' + item.id + '\')">刪除</button>' : '';
+    html += '<div class="bus-card" id="card-' + item.id + '">' +
+              '<div class="route-info">' +
+                delBtn +
+                '<div class="route-num">' + item.route + '</div>' +
+                '<div class="stop-details">' +
+                  '<div class="dest-name"><span class="badge ' + badgeClass + '">' + badgeText + '</span>往 ' + item.dest + '</div>' +
+                  '<div class="stop-name">上車站：' + item.stopName + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="eta-box" id="eta-' + item.id + '">' +
+                '<div class="eta-none">載入中...</div>' +
+              '</div>' +
+            '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function fetchSingleEta(item) {
+  var url = '';
+  if (item.company === 'KMB') {
+    url = 'https://etabus.gov.hk' + item.stopId + '/' + item.route + '/1';
+  } else {
+    url = 'https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/' + item.stopId + '/' + item.route;
+  }
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(json) {
+      var data = json.data || [];
+      var targetDir = item.dir === 'outbound' ? 'O' : 'I';
+      var validEtas = [];
+
+      for (var i = 0; i < data.length; i++) {
+        var row = data[i];
+        if (row.dir === targetDir && row.eta) {
+          var m = calcMinutes(row.eta);
+          if (m !== null) {
+            validEtas.push({ mins: m, rmk: row.rmk_tc || '' });
+          }
+        }
+      }
+
+      validEtas.sort(function(a, b) { return a.mins - b.mins; });
+      updateEtaUI(item.id, validEtas);
+    })
+    .catch(function() {
+      var box = document.getElementById('eta-' + item.id);
+      if (box) box.innerHTML = '<div class="eta-none">連線失敗</div>';
+    });
+}
+
+function updateEtaUI(id, etas) {
+  var box = document.getElementById('eta-' + id);
+  if (!box) return;
+  if (etas.length === 0) {
+    box.innerHTML = '<div class="eta-none">暫無班次資料</div>';
+    return;
+  }
+
+  var first = etas[0];
+  var mainHtml = '';
