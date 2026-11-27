@@ -349,3 +349,84 @@ function updateEtaUI(id, etas) {
 
   var first = etas[0];
   var mainHtml = '';
+if (!stopDetails) return;
+var options = '';
+for (var i = 0; i < stopDetails.length; i++) {
+var st = stopDetails[i].data;
+options += '' + (i + 1) + '. ' + st.name_tc + '';
+}
+select.innerHTML = options;
+document.getElementById('saveBtn').style.display = 'inline-block';
+}).catch(function() {
+alert('讀取九巴資料失敗，請稍後再試');
+resetStops();
+});
+} else {
+var ctbRouteUrl = 'data.gov.hk' + route;
+var ctbStopsUrl = 'data.gov.hk' + route + '/' + dir;
+Promise.all([
+fetch(ctbRouteUrl).then(function(r) { return r.json(); }),
+fetch(ctbStopsUrl).then(function(r) { return r.json(); })
+]).then(function(results) {
+var rData = results[0].data;
+var sList = results[1].data;
+if (!rData || !sList || sList.length === 0) {
+alert('找不到該城巴路線或方向，請檢查號碼是否正確');
+resetStops();
+return;
+}
+tempRouteDest = (dir === 'outbound') ? rData.dest_tc : rData.orig_tc;
+document.getElementById('routeDestLabel').innerHTML = '往「' + tempRouteDest + '」— 請選擇上車站：';
+var stopPromises = [];
+for (var i = 0; i < sList.length; i++) {
+stopPromises.push(
+fetch('data.gov.hk' + sList[i].stop)
+.then(function(r) { return r.json(); })
+);
+}
+return Promise.all(stopPromises);
+}).then(function(stopDetails) {
+if (!stopDetails) return;
+var options = '';
+for (var i = 0; i < stopDetails.length; i++) {
+var st = stopDetails[i].data;
+options += '' + (i + 1) + '. ' + st.name_tc + '';
+}
+select.innerHTML = options;
+document.getElementById('saveBtn').style.display = 'inline-block';
+}).catch(function() {
+alert('讀取城巴資料失敗，請稍後再試');
+resetStops();
+});
+}
+}
+function saveRoute() {
+var company = document.getElementById('companyInput').value;
+var route = document.getElementById('routeInput').value.trim().toUpperCase();
+var dir = document.getElementById('dirInput').value;
+var select = document.getElementById('stopSelect');
+var stopId = select.value;
+var rawText = select.options[select.selectedIndex].text;
+var stopName = rawText.replace(/^\d+.\s*/, '');
+var list = getRoutes();
+list.push({
+id: 'r_' + new Date().getTime(),
+company: company,
+route: route,
+dir: dir,
+stopId: stopId,
+stopName: stopName,
+dest: tempRouteDest
+});
+saveRoutesList(list);
+closeModal();
+renderCards();
+refreshAll();
+}
+// 初始化
+updateClock();
+setInterval(updateClock, 1000);
+renderCards();
+refreshAll();
+setInterval(refreshAll, 20000);
+ 
