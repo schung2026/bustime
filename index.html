@@ -17,7 +17,7 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* 天氣欄樣式 */
+  /* 天氣欄 */
   .weather-bar {
     display: -webkit-flex;
     display: flex;
@@ -203,6 +203,7 @@
     background-color: rgba(0, 0, 0, 0.88);
     padding: 30px;
     z-index: 999;
+    overflow-y: auto;
   }
   .modal-content {
     background-color: #181818;
@@ -312,9 +313,10 @@
 </div>
 
 <script>
-var STORAGE_KEY = 'hk_bus_board_routes_v1';
+var STORAGE_KEY = 'hk_bus_board_routes_v2';
 var editMode = false;
 var tempRouteDest = '';
+var kmbStopsCache = null;
 
 var defaultRoutes = [
   { id: 'demo1', company: 'KMB', route: '101', dir: 'outbound', stopId: 'BFA3460955AC820C', stopName: '堅拿道東', dest: '觀塘(裕民坊)' },
@@ -366,16 +368,23 @@ function fetchWeather() {
         iconImg.src = 'https://hko.gov.hk' + data.icon[0] + '.png';
         iconImg.style.display = 'block';
       }
-if (!stopDetails) return;
+if (!rData || !sList || sList.length === 0) {
+alert('找不到該九巴路線或方向，請檢查號碼是否正確（如聯營線可嘗試選城巴）');
+resetStops();
+return;
+}
+tempRouteDest = rData.dest_tc;
+document.getElementById('routeDestLabel').innerHTML = '往「' + tempRouteDest + '」— 請選擇上車站：';
 var options = '';
-for (var i = 0; i < stopDetails.length; i++) {
-var st = stopDetails[i].data;
-options += '' + (i + 1) + '. ' + st.name_tc + '';
+for (var i = 0; i < sList.length; i++) {
+var sid = sList[i].stop;
+var sname = stopMap[sid] || ('車站 ' + sid);
+options += '' + (i + 1) + '. ' + sname + '';
 }
 select.innerHTML = options;
 document.getElementById('saveBtn').style.display = 'inline-block';
 }).catch(function() {
-alert('讀取九巴資料失敗，請稍後再試');
+alert('讀取九巴資料失敗，請檢查網絡連線');
 resetStops();
 });
 } else {
@@ -412,7 +421,7 @@ options += '' + (i + 1) + '. ' + st.name_tc + '';
 select.innerHTML = options;
 document.getElementById('saveBtn').style.display = 'inline-block';
 }).catch(function() {
-alert('讀取城巴資料失敗，請稍後再試');
+alert('讀取城巴資料失敗，請檢查網絡連線');
 resetStops();
 });
 }
@@ -448,4 +457,3 @@ setInterval(fetchWeather, 900000);
 renderCards();
 refreshAll();
 setInterval(refreshAll, 20000);
-
